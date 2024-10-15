@@ -2,14 +2,11 @@ import SwiftUI
 
 @main
 struct MyApp: App {
+    @State private var isShow = false
+    
     var body: some Scene {
         WindowGroup {
-            if UserDefaults.standard.bool(forKey: "hasSeenSplashScreen") {
-                ContentView()
-            } else {
-                SplashScreen()
-            }
+            ContentView()
         }
     }
 }
-

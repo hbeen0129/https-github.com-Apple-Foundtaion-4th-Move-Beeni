@@ -1,38 +1,43 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isActive = false // 기본 값 false로 둬서 스플래시 실행 후 나오게
+    
     var body: some View {
-        TabView(selection: .constant(1)) { // 하단 Tab bar
-            
-            // 프로필 페이지 탭
-            ProfileView()
-                .tabItem {Label("Profile", systemImage: "house.fill")}
-                .tag(0)
-            
-            // 모임 페이지 탭
-            RunView()
-                .tabItem {Label("Run", systemImage: "figure.run")}
-                .tag(1)
-            
-            // 채팅 페이지 탭
-            ChatView()
-                .tabItem {Label("Chat", systemImage: "message.fill")}
-                .tag(2)
-            
+        if isActive {
+            TabView(selection: .constant(1)) { // 하단 Tab bar
+                
+                // 프로필 페이지 탭
+                ProfileView()
+                    .tabItem {Label("Profile", systemImage: "house.fill")}
+                    .tag(0)
+                
+                // 모임 페이지 탭
+                RunView()
+                    .tabItem {Label("Run", systemImage: "figure.run")}
+                    .tag(1)
+                
+                // 채팅 페이지 탭
+                ChatView()
+                    .tabItem {Label("Chat", systemImage: "message.fill")}
+                    .tag(2)
+                
+            }
+        } else {
+            SplashScreen(isActive: $isActive)
         }
-        
     }
     
 }
 
 // 스플래시 화면
 struct SplashScreen: View {
-    @State private var isActive = false // 기본 값 false로 둬서 스플래시 실행 후 나오게
+    @Binding var isActive: Bool // 권한 넘겨주기 위해 binding
     
     var body: some View {
-        if isActive {
-            ContentView() // 스플래시가 끝난 후 메인 뷰
-        } else {
+        ZStack{
+            Color.teal.opacity(0.5) // 스플래시 전체 색상
+            
             VStack{
                 Image(systemName: "figure.run") // 로고 이미지 run
                     .resizable() // 이미지 수정 허용
@@ -44,13 +49,12 @@ struct SplashScreen: View {
                 // 2초 후 메인 뷰로 전환
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { withAnimation {
                     isActive = true
-                    // 앱 기본 설정 (스탠다드 : 기본값 저장소), true는 사용자가 스플래시 화면을 본 적 있음을 나타냄
-                    // 값 저장하는 키와 키값 hasSeenSplashScreen
-                    UserDefaults.standard.set(true, forKey: "hasSeenSplashScreen")
                 }
                 }
             }
         }
+        
+        
         
     }
     
