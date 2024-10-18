@@ -1,11 +1,42 @@
 import SwiftUI
+import MapKit
+import CoreLocation
+
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private var locationManager = CLLocationManager()
+    
+    @Published var Region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 37.56, longitude: 126.97), span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)) // 초기 값
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations location: [CLLocation]) {
+        guard let location = location.last else { return }
+        
+        // 사용자의 현재 위치를 기반으로 지도의 중심 업데이트
+        Region = MKCoordinateRegion(center: location.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
+        
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to find user's location: \(error.localizedDescription)")
+    }
+    
+}
+
+
 
 struct ContentView: View {
     @State private var isActive = false // 기본 값 false로 둬서 스플래시 실행 후 나오게
     
     var body: some View {
         if isActive {
-            TabView(selection: .constant(1)) { // 하단 Tab bar
+            TabView(selection: .constant(0)) { // 하단 Tab bar
                 
                 // 프로필 페이지 탭
                 ProfileView()
@@ -24,7 +55,7 @@ struct ContentView: View {
                 
             }
         } else {
-            SplashScreen(isActive: $isActive)
+            SplashView(isActive: $isActive)
         }
     }
     
@@ -37,6 +68,8 @@ struct ContentView: View {
 
 // 프로필 페이지
 struct ProfileView: View {
+    @StateObject private var locationManager = LocationManager() // 위치 관리 객체 생성
+    
     var body: some View {
         VStack(alignment: .leading) {
             
@@ -80,7 +113,7 @@ struct ProfileView: View {
                         
                         // 러닝 온도
                         VStack{
-                            Image(systemName: "smiley.fill") // 스마일 이미지
+                            Image(systemName: "smiley") // 스마일 이미지
                                 .resizable()
                                 .frame(width: 50, height: 50) // 스마일 이미지 크기
                             
@@ -168,10 +201,21 @@ struct ProfileView: View {
             
             // map 이미지
             VStack{
-                Image("map")
-                    .resizable()
-                    .frame(width: 360, height: 250)
-                    .cornerRadius(15)
+                if #available(iOS 17.0, *) {
+                    Map(coordinateRegion: $locationManager.Region)  // 사용자의 현재 위치로 맵 표시
+                        .frame(width: 360, height: 250)
+                        .cornerRadius(15)
+                        .onAppear() {
+                            locationManager.locationManager.startUpdatingLocation()
+                        }
+
+                } else { // ios 버전 안 맞으면 map 이미지 띄우기
+                    Image("map")
+                        .resizable()
+                        .frame(width: 360, height: 250)
+                        .cornerRadius(15)
+//                        .padding(.horizontal, 18)
+                }
             }
             .frame(maxWidth: .infinity) // 가운데 정렬
             

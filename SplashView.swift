@@ -9,7 +9,7 @@ import SwiftUI
 
 
 // 스플래시 화면
-struct SplashScreen: View {
+struct SplashView: View {
     @Binding var isActive: Bool // 권한 넘겨주기 위해 binding
     
     var body: some View {
